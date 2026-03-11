@@ -1,0 +1,81 @@
+server 
+
+
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <string.h>
+#include <netinet/in.h>
+
+int main() {
+    char sendmsg[30], recvmsg[30];
+    int sd, nsd, clien, len, jdd;
+    struct sockaddr_in cliaddr, servaddr;
+
+    sd = socket(AF_INET, SOCK_STREAM, 0);
+
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    servaddr.sin_port = htons(5000);
+
+    bind(sd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    listen(sd, 5);
+
+    do {
+        clien = sizeof(cliaddr);
+        nsd = accept(sd, (struct sockaddr *)&cliaddr, &clien);
+
+        recv(nsd, recvmsg, 30, 0);
+        printf("\n Received : %s\n", recvmsg);
+
+        printf("Enter a message: ");
+        fgets(sendmsg, 30, stdin);
+
+        len = strlen(sendmsg);
+        sendmsg[len - 1] = '\0';
+        send(nsd, sendmsg, len, 0);
+
+    } while (strcmp(sendmsg, "bye") != 0);
+
+    return 0;
+}
+
+
+
+client
+
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <string.h>
+#include <netinet/in.h>
+
+int main() {
+    char sendmsg[30], recvmsg[30];
+    int csd, len;
+    struct sockaddr_in servaddr;
+
+    csd = socket(AF_INET, SOCK_STREAM, 0);
+
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    servaddr.sin_port = htons(5000);
+
+    connect(csd, (struct sockaddr *)&servaddr, sizeof(servaddr));
+
+    do {
+        printf("\n Enter the message: ");
+        fgets(sendmsg, 30, stdin);
+
+        len = strlen(sendmsg);
+        sendmsg[len - 1] = '\0';
+        send(csd, sendmsg, len, 0);
+
+        printf("\n Received Message: ");
+        recv(csd, recvmsg, 30, 0);
+        printf("%s\n", recvmsg);
+
+    } while (strcmp(sendmsg, "bye") != 0);
+
+    return 0;
+}
